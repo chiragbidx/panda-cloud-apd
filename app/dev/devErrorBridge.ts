@@ -31,7 +31,7 @@ function sendToBubble(payload: DevErrorPayload) {
 }
 
 export function initDevErrorBridge() {
-  if (process.env.NODE_ENV !== 'development') return;
+  if (process.env.NODE_ENV !== 'production') return;
   if ((window as any).__DEV_ERROR_BRIDGE_INIT__) return;
   (window as any).__DEV_ERROR_BRIDGE_INIT__ = true;
 
