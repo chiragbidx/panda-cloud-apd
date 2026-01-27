@@ -32,12 +32,16 @@ function NavigationListener() {
       return;
     }
 
-    if (!pathname || pathname === '/') {
+    const resolvedPathname = pathname || window.location.pathname;
+    const normalizedPath = resolvedPathname.replace(/\/+$/, '');
+
+    if (!normalizedPath || normalizedPath === '/') {
       return;
     }
 
     const fullPath =
-      pathname + (searchParams.toString() ? `?${searchParams}` : '');
+      normalizedPath +
+      (searchParams.toString() ? `?${searchParams}` : '');
 
     if (lastSentPathRef.current === fullPath) return;
     lastSentPathRef.current = fullPath;
