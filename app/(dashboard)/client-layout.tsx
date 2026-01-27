@@ -1,7 +1,7 @@
- 'use client';
+'use client';
 
- import Link from 'next/link';
- import { useState, Suspense } from 'react';
+import Link from 'next/link';
+import { useState, useEffect, useRef, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { CircleIcon, Home, LogOut } from 'lucide-react';
 import {
@@ -12,12 +12,47 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { signOut } from '@/app/(login)/actions';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { User } from '@/lib/db/schema';
 import useSWR, { mutate } from 'swr';
 
 const fetcher = (url: string) =>
   fetch(url, { cache: 'no-store' }).then((res) => res.json());
+
+function NavigationListener() {
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const hasMountedRef = useRef(false);
+  const lastSentPathRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+
+    if (!pathname || pathname === '/') {
+      return;
+    }
+
+    const fullPath =
+      pathname + (searchParams.toString() ? `?${searchParams}` : '');
+
+    if (lastSentPathRef.current === fullPath) return;
+    lastSentPathRef.current = fullPath;
+
+    window.parent.postMessage(
+      {
+        type: 'NAVIGATED',
+        payload: { path: fullPath }
+      },
+      '*'
+    );
+  }, [pathname, searchParams]);
+
+  return null;
+}
 
 function UserMenu() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -102,6 +137,7 @@ export default function ClientLayout({
 }) {
   return (
     <section className="flex flex-col min-h-screen">
+      <NavigationListener />
       <Header />
       {children}
     </section>
