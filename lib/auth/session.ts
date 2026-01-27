@@ -38,10 +38,15 @@ export async function verifyToken(input: string) {
 }
 
 export async function getSession() {
-  const session = (await cookies()).get('session')?.value;
-  if (!session) return null;
-  return await verifyToken(session);
+  try {
+    const session = (await cookies()).get('session')?.value;
+    if (!session) return null;
+    return await verifyToken(session);
+  } catch {
+    return null;
+  }
 }
+
 
 export async function setSession(user: NewUser) {
   const expiresInOneDay = new Date(Date.now() + 24 * 60 * 60 * 1000);
