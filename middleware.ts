@@ -29,7 +29,8 @@ export async function middleware(request: NextRequest) {
         httpOnly: true,
         secure: true,
         sameSite: 'lax',
-        expires: expiresInOneDay
+        expires: expiresInOneDay,
+        path: '/'
       });
     } catch (error) {
       console.error('Error updating session:', error);
