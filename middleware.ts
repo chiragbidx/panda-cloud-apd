@@ -15,6 +15,19 @@ export async function middleware(request: NextRequest) {
 
   let res = NextResponse.next();
 
+  // Clear any path-scoped legacy cookies created before path='/' was set.
+  if (sessionCookie && pathname !== '/') {
+    res.cookies.set({
+      name: 'session',
+      value: '',
+      path: pathname,
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      expires: new Date(0)
+    });
+  }
+
   if (sessionCookie && request.method === 'GET') {
     try {
       const parsed = await verifyToken(sessionCookie.value);
@@ -45,6 +58,6 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: ['/((?!api|_next/static|_next/image|_next/webpack-hmr|favicon.ico).*)'],
   runtime: 'nodejs'
 };
