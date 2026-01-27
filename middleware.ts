@@ -23,7 +23,7 @@ export async function middleware(request: NextRequest) {
       path: pathname,
       httpOnly: true,
       secure: true,
-      sameSite: 'lax',
+      sameSite: 'none',
       expires: new Date(0)
     });
   }
@@ -41,7 +41,7 @@ export async function middleware(request: NextRequest) {
         }),
         httpOnly: true,
         secure: true,
-        sameSite: 'lax',
+        sameSite: 'none',
         expires: expiresInOneDay,
         path: '/'
       });
