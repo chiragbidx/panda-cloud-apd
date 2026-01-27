@@ -2,6 +2,7 @@ import { compare, hash } from 'bcryptjs';
 import { SignJWT, jwtVerify } from 'jose';
 import { cookies } from 'next/headers';
 import { NewUser } from '@/lib/db/schema';
+import { unstable_noStore as noStore } from 'next/cache';
 
 const key = new TextEncoder().encode(process.env.AUTH_SECRET);
 const SALT_ROUNDS = 10;
@@ -38,6 +39,7 @@ export async function verifyToken(input: string) {
 }
 
 export async function getSession() {
+  noStore(); // 🔑 REQUIRED — reads auth cookie
   try {
     const session = (await cookies()).get('session')?.value;
     if (!session) return null;
