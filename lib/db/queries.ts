@@ -3,14 +3,28 @@ import { db } from './drizzle';
 import { activityLogs, teamMembers, teams, users } from './schema';
 import { cookies } from 'next/headers';
 import { verifyToken } from '@/lib/auth/session';
+import { unstable_noStore as noStore } from 'next/cache';
+
+/**
+ * AUTH HELPERS
+ * Any function that reads cookies or auth MUST opt out of caching.
+ */
 
 export async function getUser() {
+  noStore(); // 🔑 CRITICAL — prevents auth cache poisoning
+
   const sessionCookie = (await cookies()).get('session');
   if (!sessionCookie || !sessionCookie.value) {
     return null;
   }
 
-  const sessionData = await verifyToken(sessionCookie.value);
+  let sessionData;
+  try {
+    sessionData = await verifyToken(sessionCookie.value);
+  } catch {
+    return null;
+  }
+
   if (
     !sessionData ||
     !sessionData.user ||
@@ -29,21 +43,23 @@ export async function getUser() {
     .where(and(eq(users.id, sessionData.user.id), isNull(users.deletedAt)))
     .limit(1);
 
-  if (user.length === 0) {
-    return null;
-  }
-
-  return user[0];
+  return user[0] ?? null;
 }
 
+/**
+ * TEAM HELPERS
+ */
+
 export async function getTeamByStripeCustomerId(customerId: string) {
+  noStore();
+
   const result = await db
     .select()
     .from(teams)
     .where(eq(teams.stripeCustomerId, customerId))
     .limit(1);
 
-  return result.length > 0 ? result[0] : null;
+  return result[0] ?? null;
 }
 
 export async function updateTeamSubscription(
@@ -55,30 +71,40 @@ export async function updateTeamSubscription(
     subscriptionStatus: string;
   }
 ) {
+  noStore();
+
   await db
     .update(teams)
     .set({
       ...subscriptionData,
-      updatedAt: new Date()
+      updatedAt: new Date(),
     })
     .where(eq(teams.id, teamId));
 }
 
 export async function getUserWithTeam(userId: number) {
+  noStore();
+
   const result = await db
     .select({
       user: users,
-      teamId: teamMembers.teamId
+      teamId: teamMembers.teamId,
     })
     .from(users)
     .leftJoin(teamMembers, eq(users.id, teamMembers.userId))
     .where(eq(users.id, userId))
     .limit(1);
 
-  return result[0];
+  return result[0] ?? null;
 }
 
+/**
+ * ACTIVITY LOGS
+ */
+
 export async function getActivityLogs() {
+  noStore(); // 🔑 REQUIRED — depends on auth
+
   const user = await getUser();
   if (!user) {
     throw new Error('User not authenticated');
@@ -90,7 +116,7 @@ export async function getActivityLogs() {
       action: activityLogs.action,
       timestamp: activityLogs.timestamp,
       ipAddress: activityLogs.ipAddress,
-      userName: users.name
+      userName: users.name,
     })
     .from(activityLogs)
     .leftJoin(users, eq(activityLogs.userId, users.id))
@@ -99,7 +125,13 @@ export async function getActivityLogs() {
     .limit(10);
 }
 
+/**
+ * TEAM FOR CURRENT USER
+ */
+
 export async function getTeamForUser() {
+  noStore(); // 🔑 REQUIRED — depends on auth
+
   const user = await getUser();
   if (!user) {
     return null;
@@ -116,15 +148,15 @@ export async function getTeamForUser() {
                 columns: {
                   id: true,
                   name: true,
-                  email: true
-                }
-              }
-            }
-          }
-        }
-      }
-    }
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      },
+    },
   });
 
-  return result?.team || null;
+  return result?.team ?? null;
 }
