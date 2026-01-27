@@ -1,7 +1,7 @@
-'use client';
+ 'use client';
 
-import Link from 'next/link';
-import { useState, useEffect, Suspense } from 'react';
+ import Link from 'next/link';
+ import { useState, Suspense } from 'react';
 import { Button } from '@/components/ui/button';
 import { CircleIcon, Home, LogOut } from 'lucide-react';
 import {
@@ -15,24 +15,9 @@ import { signOut } from '@/app/(login)/actions';
 import { useRouter } from 'next/navigation';
 import { User } from '@/lib/db/schema';
 import useSWR, { mutate } from 'swr';
-import { usePathname } from 'next/navigation';
 
 const fetcher = (url: string) =>
   fetch(url, { cache: 'no-store' }).then((res) => res.json());
-
-function notifyBubbleNavigation(path: string) {
-  if (typeof window === 'undefined' || window.parent === window) {
-    return;
-  }
-
-  window.parent.postMessage(
-    {
-      type: 'NAVIGATED',
-      payload: { path }
-    },
-    '*'
-  );
-}
 
 function UserMenu() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -115,12 +100,6 @@ export default function ClientLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const pathname = usePathname();
-
-  useEffect(() => {
-    notifyBubbleNavigation(pathname);
-  }, [pathname]);
-
   return (
     <section className="flex flex-col min-h-screen">
       <Header />
