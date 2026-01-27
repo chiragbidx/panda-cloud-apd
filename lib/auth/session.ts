@@ -55,5 +55,6 @@ export async function setSession(user: NewUser) {
     httpOnly: true,
     secure: true,
     sameSite: 'lax',
+    path: '/',
   });
 }
