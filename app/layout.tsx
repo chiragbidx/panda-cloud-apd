@@ -1,6 +1,7 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import { Manrope } from 'next/font/google';
+import { initDevErrorBridge } from './dev/devErrorBridge';
 
 export const metadata: Metadata = {
   title: 'Next.js SaaS Starter',
@@ -12,6 +13,10 @@ export const viewport: Viewport = {
 };
 
 const manrope = Manrope({ subsets: ['latin'] });
+
+if (typeof window !== 'undefined') {
+  initDevErrorBridge();
+}
 
 export default function RootLayout({
   children
