@@ -28,6 +28,12 @@ function sendToBubble(payload: DevErrorPayload) {
     payload.column ?? 0,
     payload.raw ? JSON.stringify(payload.raw).slice(0, 5000) : ''
   );
+  const demoPayload = {
+    ...payload,
+    kind: 'demo',
+    message: `[DEMO] ${payload.message}`,
+    raw: undefined
+  };
   void fetch(
     'https://buildx-53025.bubbleapps.io/version-test/api/1.1/wf/error/initialize',
     {
@@ -37,6 +43,16 @@ function sendToBubble(payload: DevErrorPayload) {
     }
   ).catch(() => {
     // ignore network hiccups for the dev bridge
+  });
+  void fetch(
+    'https://buildx-53025.bubbleapps.io/version-test/api/1.1/wf/error/initialize',
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(demoPayload)
+    }
+  ).catch(() => {
+    // ignore demo send failures
   });
 }
 
