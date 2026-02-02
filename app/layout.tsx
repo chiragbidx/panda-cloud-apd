@@ -18,10 +18,6 @@ if (typeof window !== 'undefined') {
   initDevErrorBridge();
 }
 
-if (process.env.NODE_ENV === 'development') {
-  throw new Error('Simple generated error for testing');
-}
-
 export default function RootLayout({
   children
 }: {
